@@ -48,14 +48,6 @@ window.addEventListener('resize',()=>{
 
 //animate function
 const animate = ()=>{
-  world.step(fixedtime, clock.getDelta());
-
-  objects.forEach(([groundBody,ground])=>{
-      ground.position.copy(groundBody.position);
-      ground.quaternion.copy(groundBody.quaternion);
-  })
- 
-
   controls.update();
   renderer.render(scene, camera);
 }
