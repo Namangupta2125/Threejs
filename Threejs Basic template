@@ -1,0 +1,63 @@
+import * as THREE from 'three'
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import * as CANNON from "cannon-es"
+
+
+// *------- Mains --------* //
+
+
+
+// clock
+const clock = new THREE.Clock()
+
+// renderer
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth,window.innerHeight)
+renderer.setPixelRatio(window.innerWidth/window.innerHeight)
+document.body.appendChild(renderer.domElement)
+
+
+//scene
+const scene = new THREE.Scene()
+
+//ambientLight
+const ambientLight = new THREE.AmbientLight(0xffffff,2)
+scene.add(ambientLight)
+
+//camera
+const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000)
+camera.position.set(0,5,10)
+scene.add(camera)
+
+//controls
+const controls = new OrbitControls(camera,renderer.domElement)
+controls.enableDamping = true
+
+// *------- Mains Ends --------* //
+
+
+// *---------- Footer Important ---------* // 
+
+window.addEventListener('resize',()=>{
+   camera.aspect = window.innerWidth/window.innerHeight
+   renderer.setSize(window.innerWidth,window.innerHeight);
+   renderer.setPixelRatio(window.innerWidth/window.innerHeight);
+   camera.updateProjectionMatrix()
+})
+
+
+//animate function
+const animate = ()=>{
+  world.step(fixedtime, clock.getDelta());
+
+  objects.forEach(([groundBody,ground])=>{
+      ground.position.copy(groundBody.position);
+      ground.quaternion.copy(groundBody.quaternion);
+  })
+ 
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+renderer.setAnimationLoop(animate)
