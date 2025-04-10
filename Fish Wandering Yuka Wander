@@ -1,0 +1,106 @@
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import * as SkeletonUtils from "three/addons/utils/SkeletonUtils.js";
+import * as Yuka from "yuka";
+
+
+
+// *--------- MAIN --------------* //
+const clock = new THREE.Clock();
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 10);
+scene.add(ambientLight);
+
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+camera.position.set(4, 3, 30);
+scene.add(camera);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+// *--------- MAIN  ENDS--------------* //
+
+const mixers = [];
+const entityManager = new Yuka.EntityManager();
+const loader = new GLTFLoader();
+
+function sync(entity, renderComponent) {
+  renderComponent.matrix.copy(entity.worldMatrix);
+}
+
+loader.load("./Clownfish.glb", (gltf) => {
+  const clip = THREE.AnimationClip.findByName(
+    gltf.animations,
+    "Fish_Armature|Swimming_Fast"
+  );
+
+  for (let i = 0; i < 50; i++) {
+    const vehicle = new Yuka.Vehicle();
+    const clone = SkeletonUtils.clone(gltf.scene);
+
+    clone.traverse((child) => {
+      if (child.isMesh) {
+        child.scale.setScalar(0.0005);
+      }
+    });
+
+    clone.matrixAutoUpdate = false;
+
+    const randomX = (Math.random() - 0.5) * 20;
+    const randomY = (Math.random() - 0.5) * 10;
+    const randomZ = (Math.random() - 0.5) * 20;
+    vehicle.position.set(randomX, randomY, randomZ);
+
+    const wander = new Yuka.WanderBehavior();
+    wander.weight = 1;
+    wander.radius = 3;
+    wander.distance = 5;
+    wander.jitter = 10;
+    vehicle.steering.add(wander);
+    vehicle.maxSpeed = 3 + Math.random() * 2;
+
+    vehicle.setRenderComponent(clone, sync);
+    entityManager.add(vehicle);
+    scene.add(clone);
+
+    const mixer = new THREE.AnimationMixer(clone);
+    mixer.clipAction(clip).play();
+    mixers.push(mixer);
+  }
+});
+
+const time = new Yuka.Time();
+
+
+
+// *--------- FOOTER --------------* //
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+const animate = () => {
+  const delta = clock.getDelta();
+  const dt = time.update().getDelta();
+
+  mixers.forEach((mixer) => mixer.update(delta));
+  entityManager.update(dt);
+  controls.update();
+  renderer.render(scene, camera);
+};
+
+renderer.setAnimationLoop(animate);
