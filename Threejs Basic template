@@ -1,7 +1,10 @@
-import * as THREE from 'three'
+import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import * as CANNON from "cannon-es"
-
+import * as CANNON from "cannon-es";
+import gsap from 'gsap'
+import * as Yuka from 'yuka'
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
 // *------- Mains --------* //
 
